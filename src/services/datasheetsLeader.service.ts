@@ -11,8 +11,8 @@ export class DatasheetsLeaderService extends BaseService(
     datasheet: Datasheets,
   ): Promise<DatasheetsLeader[]> {
     return this.repository.find({
-      where: { attached: datasheet },
-      relations: ['leader'],
+      where: { attached: { id: datasheet.id } },
+      relations: { leader: true },
     });
   }
 }

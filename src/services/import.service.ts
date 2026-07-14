@@ -264,7 +264,7 @@ export class ImportService {
       (
         await manager
           .getRepository(targetMeta.target)
-          .find({ select: [targetKey] as any })
+          .find({ select: { [targetKey]: true } })
       ).map((t) => t[targetKey]),
     );
 
@@ -460,7 +460,7 @@ export class ImportService {
       // earlier step of this same import.
       const parents = await manager
         .getRepository(parentMeta.target)
-        .find({ select: [parentKey] as any });
+        .find({ select: { [parentKey]: true } });
 
       validIds.set(
         relation.propertyName,

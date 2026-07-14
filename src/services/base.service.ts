@@ -60,8 +60,11 @@ export const BaseService = <T>(
       relations?: object,
       select?: object,
     ): Promise<T[]> {
+      // Match the foreign key only. Passing the entity makes TypeORM
+      // build a where across all of its properties, which errors on
+      // any that are null.
       let searchObj = {
-        where: { datasheet },
+        where: { datasheet: { id: datasheet.id } },
       };
 
       if (relations) {
