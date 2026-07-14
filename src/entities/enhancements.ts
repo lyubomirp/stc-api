@@ -6,6 +6,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { Factions } from './factions';
+import { Detachments } from './detachments';
 import { DatasheetsEnhancements } from './datasheetsEnhancements';
 
 @Entity()
@@ -35,5 +36,12 @@ export class Enhancements {
   datasheetEnhancements: DatasheetsEnhancements[];
 
   @ManyToOne(() => Factions, (faction) => faction.enhancements)
-  faction: string;
+  faction: Factions;
+
+  @ManyToOne(
+    () => Detachments,
+    (detachment) => detachment.enhancements,
+    { nullable: true },
+  )
+  detachmentRef: Detachments;
 }

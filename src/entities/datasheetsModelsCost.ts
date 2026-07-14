@@ -23,6 +23,7 @@ export class DatasheetsModelsCost {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetModelsCost,
+    { nullable: false },
   )
   datasheet: Datasheets;
 }

@@ -11,7 +11,7 @@ export class DatasheetsWargear {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   line: string;
 
   @Column()
@@ -20,16 +20,16 @@ export class DatasheetsWargear {
   @Column({ nullable: true })
   dice: string;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ nullable: true })
   description: string;
 
-  @Column()
+  @Column({ nullable: true })
   range: string;
 
-  @Column()
+  @Column({ nullable: true })
   type: string;
 
   @Column()
@@ -50,6 +50,7 @@ export class DatasheetsWargear {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetWargear,
+    { nullable: false },
   )
   datasheet: Datasheets;
 }

@@ -33,6 +33,7 @@ export class DatasheetsAbilities {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetAbilities,
+    { nullable: false },
   )
   datasheet: Datasheets;
 

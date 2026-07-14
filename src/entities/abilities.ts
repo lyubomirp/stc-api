@@ -2,7 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryColumn,
 } from 'typeorm';
@@ -30,8 +31,14 @@ export class Abilities {
   @JoinColumn({ name: 'id' })
   datasheetAbilities: DatasheetsAbilities[];
 
-  @ManyToOne(() => Factions, (faction) => faction.abilities, {
-    nullable: true,
+  @ManyToMany(() => Factions, (faction) => faction.abilities)
+  @JoinTable({
+    name: 'abilities_factions',
+    joinColumn: { name: 'abilityId', referencedColumnName: 'id' },
+    inverseJoinColumn: {
+      name: 'factionId',
+      referencedColumnName: 'id',
+    },
   })
-  faction: Factions;
+  factions: Factions[];
 }

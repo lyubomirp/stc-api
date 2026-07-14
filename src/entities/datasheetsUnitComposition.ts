@@ -20,6 +20,7 @@ export class DatasheetsUnitComposition {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetUnitCompositions,
+    { nullable: false },
   )
   datasheet: Datasheets;
 }

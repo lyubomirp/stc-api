@@ -10,12 +10,14 @@ export class DatasheetsStratagems {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetStratagems,
+    { nullable: false },
   )
   datasheet: Datasheets;
 
   @ManyToOne(
     () => Stratagems,
     (stratagem) => stratagem.datasheetStratagems,
+    { nullable: false },
   )
   stratagem: Stratagems;
 }

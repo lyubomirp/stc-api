@@ -400,3 +400,9 @@ dist
 .serverless/**/*.zip
 data/
 temp/
+
+# Local-only notes and agent instructions
+NOTES.md
+CLAUDE.md
+AGENTS.md
+.claude/

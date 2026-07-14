@@ -1,6 +1,4 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { Abilities } from './abilities';
-import { Factions } from './factions';
 import { Datasheets } from './datasheets';
 
 @Entity()
@@ -20,10 +18,10 @@ export class Source {
   @Column({ nullable: true })
   version: string;
 
-  @Column()
+  @Column({ nullable: true })
   errataDate: string;
 
-  @Column()
+  @Column({ nullable: true })
   errataLink: string;
 
   @OneToMany(() => Datasheets, (datasheet) => datasheet.source)

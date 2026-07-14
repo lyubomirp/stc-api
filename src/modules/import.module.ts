@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BulkController } from '../controllers/bulk.controller';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 import { AbilitiesService } from '../services/abilities.service';
 import { DatasheetsService } from '../services/datasheets.service';
 import { DatasheetsAbilitiesService } from '../services/datasheetsAbilities.service';
@@ -40,6 +41,9 @@ import { Stratagems } from '../entities/stratagems';
 import { DatasheetsOptionsService } from '../services/datasheetsOptions.service';
 import { DetachmentAbilitiesService } from '../services/detachmentAbilities.service';
 import { DetachmentAbilities } from '../entities/detachmentAbilities';
+import { DetachmentsService } from '../services/detachments.service';
+import { Detachments } from '../entities/detachments';
+import { ImportService } from '../services/import.service';
 
 @Module({
   imports: [
@@ -59,16 +63,20 @@ import { DetachmentAbilities } from '../entities/detachmentAbilities';
       DatasheetsUnitComposition,
       DatasheetsWargear,
       DetachmentAbilities,
+      Detachments,
       Enhancements,
       Factions,
       LastUpdate,
       Source,
       Stratagems,
     ]),
+    HttpModule,
+    ConfigModule,
     EntityManager,
   ],
-  exports: [],
+  exports: [ImportService],
   providers: [
+    ImportService,
     {
       provide: 'abilitiesService',
       useClass: AbilitiesService,
@@ -88,6 +96,10 @@ import { DetachmentAbilities } from '../entities/detachmentAbilities';
     {
       provide: 'detachmentAbilitiesService',
       useClass: DetachmentAbilitiesService,
+    },
+    {
+      provide: 'detachmentsService',
+      useClass: DetachmentsService,
     },
     {
       provide: 'datasheetsEnhancementsService',
@@ -146,6 +158,6 @@ import { DetachmentAbilities } from '../entities/detachmentAbilities';
       useClass: StratagemsService,
     },
   ],
-  controllers: [BulkController],
+  controllers: [],
 })
-export class BulkModule {}
+export class ImportModule {}

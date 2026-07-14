@@ -1,9 +1,4 @@
-import {
-  Entity,
-  ManyToOne,
-  PrimaryColumn,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Datasheets } from './datasheets';
 import { DetachmentAbilities } from './detachmentAbilities';
 
@@ -15,6 +10,7 @@ export class DatasheetsDetachmentAbilities {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetDetachmentAbilities,
+    { nullable: false },
   )
   datasheet: Datasheets;
 
@@ -22,6 +18,7 @@ export class DatasheetsDetachmentAbilities {
     () => DetachmentAbilities,
     (detachmentAbility) =>
       detachmentAbility.datasheetDetachmentAbilities,
+    { nullable: false },
   )
   detachmentAbility: DetachmentAbilities;
 }

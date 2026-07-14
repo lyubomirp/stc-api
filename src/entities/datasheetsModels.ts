@@ -50,6 +50,7 @@ export class DatasheetsModels {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetModels,
+    { nullable: false },
   )
   datasheet: Datasheets;
 }

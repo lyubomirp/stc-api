@@ -24,12 +24,24 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Fetches the Wahapedia Warhammer 40,000 data exports nightly, imports them
+into Postgres, and serves them over a read-only API. See `NOTES.md` for how
+the import works and the upstream data quirks it handles.
+
+Parts of this codebase were written with Claude (Anthropic).
 
 ## Installation
 
 ```bash
 $ npm install
+```
+
+## Importing data
+
+Data is imported by the nightly cron, or manually:
+
+```bash
+$ npm run import
 ```
 
 ## Running the app

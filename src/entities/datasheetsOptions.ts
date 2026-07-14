@@ -23,6 +23,7 @@ export class DatasheetsOptions {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetOptions,
+    { nullable: false },
   )
   datasheet: Datasheets;
 }

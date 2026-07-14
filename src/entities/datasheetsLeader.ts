@@ -9,12 +9,14 @@ export class DatasheetsLeader {
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetLeaders,
+    { nullable: false },
   )
   leader: Datasheets;
 
   @ManyToOne(
     () => Datasheets,
     (datasheet) => datasheet.datasheetAttached,
+    { nullable: false },
   )
   attached: Datasheets;
 }
