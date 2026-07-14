@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "Standard Template Construct - a Warhammer 40,000 army list data API",
   "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

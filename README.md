@@ -28,7 +28,7 @@ file order, CSV-header to entity-property mapping, and the download list.
 
 | | |
 |---|---|
-| Runtime | Node.js 20, TypeScript 5 |
+| Runtime | Node.js 24, TypeScript 5 |
 | Framework | NestJS 10 |
 | Database | PostgreSQL 16 (via TypeORM 0.3) |
 | Scheduling | `@nestjs/schedule` |
@@ -37,7 +37,7 @@ file order, CSV-header to entity-property mapping, and the download list.
 
 ## Getting started
 
-**Prerequisites:** Node.js 20+, Docker.
+**Prerequisites:** Node.js 24 (see `.nvmrc`), Docker.
 
 ```bash
 npm install
