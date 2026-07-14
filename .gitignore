@@ -405,4 +405,4 @@ temp/
 NOTES.md
 CLAUDE.md
 AGENTS.md
-.claude/
+.claude/*.tsbuildinfo
