@@ -1,8 +1,8 @@
 {
-  "name": "nest-typescript-starter",
+  "name": "stc-api",
   "private": true,
   "version": "1.0.0",
-  "description": "Nest TypeScript starter repository",
+  "description": "Standard Template Construct - a Warhammer 40,000 army list data API",
   "license": "MIT",
   "scripts": {
     "build": "nest build",

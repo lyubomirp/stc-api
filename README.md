@@ -1,9 +1,14 @@
-# Squad Builder API
+# STC — Standard Template Construct
 
-A Warhammer 40,000 data API. It mirrors the [Wahapedia](https://wahapedia.ru)
-data exports into Postgres on a nightly schedule and serves them over a
-read-only HTTP API, so a front end can query factions, datasheets, weapon
-profiles, stratagems and abilities without parsing CSVs itself.
+A Warhammer 40,000 army list data API. It mirrors the
+[Wahapedia](https://wahapedia.ru) data exports into Postgres on a nightly
+schedule and serves them over a read-only HTTP API, so a front end can query
+factions, datasheets, weapon profiles, stratagems and abilities without
+parsing CSVs itself.
+
+Unofficial and non-commercial. Not affiliated with or endorsed by Games
+Workshop. Warhammer 40,000 and all associated names are trademarks of Games
+Workshop Limited; game data belongs to them.
 
 ## How it works
 
