@@ -3,6 +3,7 @@ import {
   DataSource,
   EntityManager,
   InsertResult,
+  ObjectLiteral,
   Repository,
   UpdateResult,
 } from 'typeorm';
@@ -15,7 +16,7 @@ type Constructor<T> = new (...args: any[]) => T;
 // Postgres caps a statement at 65535 bind parameters.
 const INSERT_BATCH_SIZE = 500;
 
-export interface IBaseServiceHost<T> {
+export interface IBaseServiceHost<T extends ObjectLiteral> {
   readonly repository: Repository<T>;
   readonly dataSource: DataSource;
   findAll: () => Promise<T[]>;
@@ -34,11 +35,11 @@ export interface IBaseServiceHost<T> {
   ) => Promise<UpdateResult>;
 }
 
-export const BaseService = <T>(
+export const BaseService = <T extends ObjectLiteral>(
   resourceType: Constructor<T>,
 ): Type<IBaseServiceHost<T>> => {
   @Injectable()
-  class BaseServiceHost<T> {
+  class BaseServiceHost<T extends ObjectLiteral> {
     @InjectRepository(resourceType)
     readonly repository: Repository<T>;
     @InjectDataSource()

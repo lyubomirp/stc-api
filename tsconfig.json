@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
+    // Entity fields are populated by TypeORM and repositories by Nest's
+    // DI, never by a constructor.
+    "strictPropertyInitialization": false,
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,

@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { DatasheetsService } from '../services/datasheets.service';
 import { DatasheetsStratagemsService } from '../services/datasheetsStratagems.service';
+import { Stratagems } from '../entities/stratagems';
 
 @Controller()
 export class DatasheetsStratagemsController {
@@ -26,7 +27,10 @@ export class DatasheetsStratagemsController {
         { stratagem: true },
       );
 
-    return result.reduce(
+    return result.reduce<{
+      detachments: string[];
+      stratagems: Stratagems[];
+    }>(
       (acc, val) => {
         const detachment = val.stratagem.detachment;
 

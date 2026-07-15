@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as csv from '@fast-csv/parse';
 import { LastUpdateService } from './lastUpdate.service';
+import { toError } from '../utils/general';
 import { ImportService } from './import.service';
 
 const LAST_UPDATE_FILE = 'Last_update.csv';
@@ -52,9 +53,10 @@ export class CronService {
       this.logger.log(`Refresh complete: ${rows} rows`);
     } catch (err) {
       // An uncaught throw here takes the process down.
+      const error = toError(err);
       this.logger.error(
-        `Nightly refresh failed: ${err.message}`,
-        err.stack,
+        `Nightly refresh failed: ${error.message}`,
+        error.stack,
       );
     }
   }

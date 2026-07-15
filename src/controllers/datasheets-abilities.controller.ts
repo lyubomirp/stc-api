@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { DatasheetsService } from '../services/datasheets.service';
 import { DatasheetsAbilitiesService } from '../services/datasheetsAbilities.service';
+import { DatasheetsAbilities } from '../entities/datasheetsAbilities';
 
 @Controller()
 export class DatasheetsAbilitiesController {
@@ -26,10 +27,13 @@ export class DatasheetsAbilitiesController {
         { ability: true },
       );
 
-    return result.reduce((acc, val) => {
-      const type = val.type;
-      (acc[type] ??= []).push(val);
-      return acc;
-    }, {});
+    return result.reduce<Record<string, DatasheetsAbilities[]>>(
+      (acc, val) => {
+        const type = val.type;
+        (acc[type] ??= []).push(val);
+        return acc;
+      },
+      {},
+    );
   }
 }

@@ -14,6 +14,7 @@ import {
   ImportSpec,
 } from '../config/importManifest';
 import { IBaseServiceHost } from './base.service';
+import { toError } from '../utils/general';
 
 export interface ImportReport {
   file: string;
@@ -134,9 +135,10 @@ export class ImportService {
       return reports;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      const error = toError(err);
       this.logger.error(
-        `Import rolled back: ${err.message}`,
-        err.stack,
+        `Import rolled back: ${error.message}`,
+        error.stack,
       );
       throw err;
     } finally {
@@ -481,7 +483,7 @@ export class ImportService {
         const value = row[prop];
 
         if (value === null || value === undefined) continue;
-        if (validIds.get(prop).has(value)) continue;
+        if (validIds.get(prop)?.has(value)) continue;
 
         const key = `${prop}:${value}`;
         if (!reported.has(key)) {
