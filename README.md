@@ -28,11 +28,12 @@ file order, CSV-header to entity-property mapping, and the download list.
 
 | | |
 |---|---|
-| Runtime | Node.js 24, TypeScript 5 |
-| Framework | NestJS 10 |
-| Database | PostgreSQL 16 (via TypeORM 0.3) |
+| Runtime | Node.js 24 LTS, TypeScript 6 (strict) |
+| Framework | NestJS 11 (Express 5) |
+| Database | PostgreSQL 16 (via TypeORM 1) |
 | Scheduling | `@nestjs/schedule` |
 | HTTP / parsing | `@nestjs/axios`, `fast-csv` |
+| Lint / test | ESLint 10 (flat config), Prettier 3, Jest 30 |
 | Local infra | Docker Compose |
 
 ## Getting started
@@ -48,6 +49,12 @@ npm run start:dev
 
 Tables are created automatically on boot (`synchronize: true`). The database
 starts empty — run an import to populate it.
+
+```bash
+npm run lint      # eslint --fix
+npm run format    # prettier --write
+npm run build
+```
 
 ### Environment
 

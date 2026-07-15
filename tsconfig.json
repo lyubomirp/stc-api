@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
-    // Entity fields are populated by TypeORM and repositories by Nest's
-    // DI, never by a constructor.
+    // Entity and injected fields are populated by TypeORM/Nest, not a constructor.
     "strictPropertyInitialization": false,
     "module": "commonjs",
     "declaration": true,
@@ -15,8 +14,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "incremental": true,
-    // Inside outDir so nest's deleteOutDir clears it too; a stale
-    // buildinfo next to a deleted dist makes tsc skip emit silently.
+    // Inside outDir: a buildinfo outliving a deleted dist makes tsc skip emit.
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "skipLibCheck": true,
     "types": ["node", "jest"]
