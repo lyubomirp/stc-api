@@ -28,10 +28,23 @@ export class DatasheetsStratagemsController {
       );
     }
 
+    // `description` and `legend` are the bulk of a stratagem row and
+    // are not rendered in the list.
     const result =
       await this.datasheetsStratagemsService.findByDatasheet(
         datasheet,
         { stratagem: true },
+        {
+          stratagem: {
+            id: true,
+            name: true,
+            cpCost: true,
+            type: true,
+            turn: true,
+            phase: true,
+            detachment: true,
+          },
+        },
       );
 
     return result.reduce<{
