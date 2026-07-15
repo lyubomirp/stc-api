@@ -105,8 +105,8 @@ All endpoints are `GET`. `:datasheetId` and `:factionId` are upstream ids
 | `/datasheets-stratagems/:datasheetId` | `{ detachments, stratagems }` |
 | `/datasheets-leader/:datasheetId` | Leader / attachment pairings |
 
-Known rough edges: a missing datasheet returns the string `'nope'` with a 200
-rather than a 404. `/` and `/abilities` are unimplemented stubs.
+An unknown faction or datasheet id returns a 404. `/` and `/abilities` are
+unimplemented stubs.
 
 ## Tests
 

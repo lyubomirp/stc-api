@@ -1,4 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import { DatasheetsModelsService } from '../services/datasheetsModels.service';
 import { DatasheetsService } from '../services/datasheets.service';
 
@@ -17,7 +22,9 @@ export class DatasheetsModelsController {
       await this.datasheetsService.findOne(datasheetId);
 
     if (!datasheet) {
-      return 'nope';
+      throw new NotFoundException(
+        `Datasheet ${datasheetId} not found`,
+      );
     }
 
     return await this.datasheetsModelsService.findByDatasheet(
