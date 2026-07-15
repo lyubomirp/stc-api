@@ -36,6 +36,7 @@
     "pg": "^8.12.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.17.6",
     "typeorm": "^1.1.0",
     "xml-js": "^1.6.11"
   },
@@ -47,6 +48,7 @@
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.1",
+    "@types/sanitize-html": "^2.16.1",
     "@types/supertest": "^7.2.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",

@@ -15,6 +15,8 @@ import {
 } from '../config/importManifest';
 import { IBaseServiceHost } from './base.service';
 import { toError } from '../utils/general';
+import sanitizeHtml from 'sanitize-html';
+import { SANITIZE, isHtml } from '../config/sanitize';
 
 export interface ImportReport {
   file: string;
@@ -417,7 +419,12 @@ export class ImportService {
         continue;
       }
 
-      mapped[prop] = value.replaceAll(/<[^>]*>/g, '\n');
+      // The markup is meaningful -- `kwb` marks every game keyword, and the
+      // Orders tables are genuinely tabular -- so it is sanitised and kept
+      // rather than stripped.
+      mapped[prop] = isHtml(value)
+        ? sanitizeHtml(value, SANITIZE)
+        : value;
     }
 
     return mapped;
