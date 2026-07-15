@@ -6,6 +6,7 @@ import { AppController } from '../controllers/app.controller';
 import { AppService } from '../services/app.service';
 import { DatabaseModule } from './database.module';
 import { CronModule } from './cron.module';
+import { DetachmentsModule } from './detachments.module';
 import { AbilitiesModule } from './abilities.module';
 import { FactionsModule } from './factions.module';
 import { DatasheetsModule } from './datasheets.module';
@@ -32,6 +33,7 @@ import { DatasheetsLeaderModule } from './datasheetsLeader.module';
     DatasheetsAbilitiesModule,
     DatasheetsOptionsModule,
     DatasheetsLeaderModule,
+    DetachmentsModule,
     CronModule,
   ],
   controllers: [AppController],
