@@ -136,9 +136,8 @@ export class ImportService {
         );
       }
 
-      // Inside the transaction on purpose: the datasheets were just deleted and
-      // reinserted, so anything written outside it would be wiped by the next
-      // refresh.
+      // Must stay inside the transaction: the datasheets were just deleted and
+      // reinserted, so anything written outside it is wiped by the next refresh.
       await this.applyWargearOptions(queryRunner.manager);
 
       await queryRunner.commitTransaction();
@@ -158,17 +157,8 @@ export class ImportService {
     }
   }
 
-  /**
-   * Attaches BSData's wargear option trees to the datasheets just imported.
-   *
-   * Wahapedia states option exclusivity only in prose, so it cannot come from
-   * the CSVs. The map is committed (see config/wargearOptions.ts) rather than
-   * fetched, keeping the import a function of the snapshot plus this repo.
-   *
-   * Name is the only join between the two sources and it is imperfect, so the
-   * misses are logged both ways: a silent 0% match would otherwise look
-   * identical to a working import.
-   */
+  // Name is the only join and it is imperfect, so both sides are logged: a
+  // silent 0% match would otherwise look identical to a working import.
   private async applyWargearOptions(
     manager: EntityManager,
   ): Promise<void> {

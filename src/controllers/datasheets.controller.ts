@@ -30,10 +30,7 @@ export class DatasheetsController {
       throw new NotFoundException(`Faction ${factionId} not found`);
     }
 
-    // Filtered server-side: the client has no keywords to filter on, and
-    // fetching them all just to narrow a list would undo the projection.
-    // The sub-faction set comes from FactionsService, which owns that
-    // derivation -- re-deriving it here is how the two drift apart.
+    // The sub-faction derivation lives in FactionsService; do not re-derive it.
     const excluded = subfaction
       ? (await this.factionService.findSubfactions(factionId))
           .map((s) => s.keyword)

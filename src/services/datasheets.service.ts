@@ -10,28 +10,16 @@ export interface DatasheetListItem {
   id: string;
   name: string;
   role: string | null;
-  /** Points tiers, cheapest first: [{ models: 5, pts: 85 }, ...]. */
   costs: CostTier[];
 }
 
 @Injectable()
 export class DatasheetsService extends BaseService(Datasheets) {
-  /**
-   * The list view: enough to render the arsenal and pick an entry. The heavy
-   * prose stays on /datasheets/single/:id.
-   *
-   * Costs ride along rather than being fetched per unit -- the roster needs a
-   * price against every row, and 298 extra round trips to draw one list is
-   * worse than the few KB. They are parsed by utils/costs, the same code that
-   * prices a saved roster.
-   *
-   * `subfactionKeywords` are the *other* sub-factions of this faction. A
-   * chapter fields its own units **plus every generic one**: Azrael is Dark
-   * Angels alone, but Intercessors belong to anybody. SM is 298 datasheets and
-   * only 142 are chapter-locked, so keeping just the keyworded ones would leave
-   * a chapter with nothing but its characters. Hence "exclude units owned by
-   * someone else" rather than "keep units owned by me".
-   */
+  // List projection; the heavy prose stays on /datasheets/single/:id.
+  //
+  // `subfactionKeywords` are the OTHER sub-factions: a chapter fields its own
+  // units plus every generic one, so this excludes units owned by someone else
+  // rather than keeping only those owned by this one.
   async findByFaction(
     faction: Factions,
     subfactionKeywords: string[] = [],
@@ -42,8 +30,7 @@ export class DatasheetsService extends BaseService(Datasheets) {
         'datasheet.id',
         'datasheet.name',
         'datasheet.role',
-        // `line` is the tier's key, not decoration: the client sends it back to
-        // say which option it picked.
+        // The client sends `line` back to say which option it picked.
         'cost.line',
         'cost.description',
         'cost.cost',

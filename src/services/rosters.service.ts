@@ -13,9 +13,8 @@ import { costTiers, priceAt } from '../utils/costs';
 
 export interface RosterUnitInput {
   datasheetId: string;
-  /** The chosen datasheets_models_cost line. Authoritative when present. */
   costLine?: string;
-  /** Legacy: only used when costLine is absent. */
+  // Legacy: only used when costLine is absent.
   modelCount?: number;
 }
 
@@ -43,10 +42,7 @@ export class RostersService {
     private readonly costs: Repository<DatasheetsModelsCost>,
   ) {}
 
-  /**
-   * Validates the input and builds the unit rows. Shared by create and update
-   * so a save behaves identically whichever it turns out to be.
-   */
+  // Shared by create and update so a save behaves identically either way.
   private async build(
     input: CreateRosterInput,
   ): Promise<{ name: string; units: RosterUnits[] }> {
@@ -76,9 +72,7 @@ export class RostersService {
       );
     }
 
-    // Validated by lookup rather than by a foreign key: the ids cannot be
-    // constrained (imported tables are wiped nightly), so the check has to
-    // happen here, at write time, while the snapshot is present.
+    // Validated by lookup: the ids cannot carry a foreign key constraint.
     const ids = [...new Set(units.map((u) => u.datasheetId))];
     const found = ids.length
       ? await this.datasheets.find({
@@ -104,8 +98,6 @@ export class RostersService {
       : [];
 
     const rows = units.map((u) => {
-      // utils/costs, the same parser the arsenal list uses -- a second
-      // implementation here is how the saved price drifts from the shown one.
       const tiers = costTiers(
         costRows.filter((c) => c.datasheet?.id === u.datasheetId),
       );
@@ -130,8 +122,6 @@ export class RostersService {
         unit.modelCount = chosen.models;
         unit.pointsAtSave = chosen.pts;
       } else {
-        // Legacy path: a roster saved before costLine existed. Ambiguous by
-        // construction, which is the whole reason costLine exists.
         unit.costLine = null;
         unit.costLabel = null;
         unit.modelCount = u.modelCount!;
@@ -166,8 +156,7 @@ export class RostersService {
 
     const saved = await this.rosters.save(roster);
 
-    // The Warlord points at a RosterUnits row, whose id only exists after the
-    // insert -- so it is resolved on the way out, not on the way in.
+    // The warlord row's id does not exist until after the insert.
     if (input.warlordDatasheetId) {
       const warlord = saved.units.find(
         (u) => u.datasheetId === input.warlordDatasheetId,
@@ -182,17 +171,8 @@ export class RostersService {
     return saved;
   }
 
-  /**
-   * Replaces a roster in place.
-   *
-   * Saving twice must not make two armies: create-only meant every click of
-   * Save inserted a fresh roster and a fresh copy of all its units, so a build
-   * session left a trail of partial snapshots.
-   *
-   * The unit set is replaced wholesale rather than diffed -- rows carry no
-   * client-side identity, and `orphanedRowAction: 'delete'` on the relation is
-   * what removes the old ones instead of orphaning them.
-   */
+  // Replaces the unit set wholesale rather than diffing: rows carry no
+  // client-side identity. orphanedRowAction: 'delete' removes the old rows.
   async update(
     id: string,
     input: CreateRosterInput,
@@ -217,7 +197,7 @@ export class RostersService {
       0,
     );
 
-    // The old warlord pointed at a row that no longer exists.
+    // The old warlord's row is gone with the replaced unit set.
     roster.warlordUnitId = null;
 
     const saved = await this.rosters.save(roster);
@@ -236,11 +216,6 @@ export class RostersService {
     return saved;
   }
 
-  /**
-   * Soft delete: `deletedAt` is set and TypeORM's default scope hides the row
-   * from every later find. The army is recoverable, which matters because
-   * nothing here is undoable from the UI.
-   */
   async remove(id: string): Promise<void> {
     const result = await this.rosters.softDelete(id);
 

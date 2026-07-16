@@ -16,11 +16,7 @@ import {
 } from '../services/rosters.service';
 import { Rosters } from '../entities/rosters';
 
-/**
- * The app's first write surface -- every other route is a read-only projection
- * of the import. Nothing here is authenticated and main.ts still has
- * `origin: '*'`, so this is safe only while the API is local.
- */
+// Unauthenticated, and main.ts still has origin: '*' -- local only.
 @Controller()
 export class RostersController {
   constructor(private readonly rostersService: RostersService) {}
@@ -30,7 +26,6 @@ export class RostersController {
     return this.rostersService.create(body);
   }
 
-  // Saving an army the client already saved must not mint a second one.
   @Put('/rosters/:id')
   async update(
     @Param('id') id: string,
@@ -39,7 +34,6 @@ export class RostersController {
     return this.rostersService.update(id, body);
   }
 
-  // Soft delete -- the row survives, later finds just stop seeing it.
   @Delete('/rosters/:id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

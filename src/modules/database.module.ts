@@ -62,8 +62,7 @@ import { RosterUnits } from '../entities/rosterUnits';
           DatasheetsOptions,
           DatasheetsWargear,
           LastUpdate,
-          // User-owned, not imported: these survive the refresh, which is why
-          // they hold no foreign key into anything above.
+          // User-owned, not imported: no foreign key into anything above.
           Rosters,
           RosterUnits,
         ],

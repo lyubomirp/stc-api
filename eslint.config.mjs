@@ -12,8 +12,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettierRecommended,
   {
-    // Scoped to TS: scripts/ is plain ESM tooling and is not in the TS
-    // program, so a project-wide parserOptions.project fails to parse it.
+    // Scoped to TS: scripts/ is outside the TS program and fails to parse.
     files: ['**/*.ts'],
     languageOptions: {
       globals: { ...globals.node, ...globals.jest },
@@ -42,7 +41,6 @@ export default tseslint.config(
     },
   },
   {
-    // Offline generators: node ESM, no TS program, no type-aware rules.
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: { ...globals.node } },
     rules: { 'prettier/prettier': ['error', { printWidth: 70 }] },

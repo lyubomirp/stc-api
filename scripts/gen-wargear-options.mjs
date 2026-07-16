@@ -1,23 +1,6 @@
-// Regenerates src/data/wargearOptions.json from BSData.
+// Regenerates src/data/wargearOptions.json from BSData. Runs by hand.
 //
 //   node scripts/gen-wargear-options.mjs [--faction EC] [--check]
-//
-// Wahapedia carries wargear options as prose ("Any number of Tormentors can
-// each have their boltgun replaced with..."), so exclusivity -- "one of these
-// two, not both" -- is not derivable from the import. BSData states it as a
-// selectionEntryGroup with a max constraint over its children:
-//
-//   <selectionEntryGroup name="Pistol" min=1 max=1>
-//     -> Bolt pistol | Plasma pistol
-//
-// This reads that structure and nothing else. It is deliberately NOT the old
-// app.service.ts approach of xml2json-ing whole catalogues into a blob: the
-// graph is only unmanageable if you convert all of it.
-//
-// BSData is not a runtime or import-time dependency. This runs by hand and
-// commits a static map; ImportService reads the committed JSON.
-//
-// 10e is the source because the database is Wahapedia 10e.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,13 +12,13 @@ const REPO = 'wh40k-10e';
 const CACHE = path.join(os.tmpdir(), `bsdata-${REPO}`);
 const OUT = path.join('src', 'data', 'wargearOptions.json');
 
-// A faction's units are spread across catalogues: 8 of Emperor's Children's 23
-// datasheets live in the Chaos Space Marines file, not their own.
+// A faction's units spread across catalogues: 8 of EC's 23 datasheets live in
+// the Chaos Space Marines file. List the siblings, not just the faction's own.
 const FACTIONS = {
   EC: ["Chaos - Emperor's Children", 'Chaos - Chaos Space Marines'],
 };
 
-// Crusade is the narrative campaign mode -- not matched play, not this builder.
+// Crusade is the narrative campaign mode, not matched play.
 const EXCLUDE_GROUPS =
   /^(crusade|.*crusade relics|.*battle traits)$/i;
 
@@ -52,7 +35,7 @@ if (!FACTIONS[faction]) {
   process.exit(1);
 }
 
-// Wahapedia writes curly apostrophes, BSData straight ones.
+// MUST stay identical to normaliseName in src/config/wargearOptions.ts.
 const norm = (s) =>
   s
     .toLowerCase()
