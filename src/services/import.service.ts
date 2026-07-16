@@ -17,6 +17,11 @@ import { IBaseServiceHost } from './base.service';
 import { toError } from '../utils/general';
 import sanitizeHtml from 'sanitize-html';
 import { SANITIZE, isHtml } from '../config/sanitize';
+import {
+  WARGEAR_OPTIONS,
+  normaliseName,
+} from '../config/wargearOptions';
+import { Datasheets } from '../entities/datasheets';
 
 export interface ImportReport {
   file: string;
@@ -131,6 +136,11 @@ export class ImportService {
         );
       }
 
+      // Inside the transaction on purpose: the datasheets were just deleted and
+      // reinserted, so anything written outside it would be wiped by the next
+      // refresh.
+      await this.applyWargearOptions(queryRunner.manager);
+
       await queryRunner.commitTransaction();
       this.logger.log('Import committed');
 
@@ -145,6 +155,67 @@ export class ImportService {
       throw err;
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  /**
+   * Attaches BSData's wargear option trees to the datasheets just imported.
+   *
+   * Wahapedia states option exclusivity only in prose, so it cannot come from
+   * the CSVs. The map is committed (see config/wargearOptions.ts) rather than
+   * fetched, keeping the import a function of the snapshot plus this repo.
+   *
+   * Name is the only join between the two sources and it is imperfect, so the
+   * misses are logged both ways: a silent 0% match would otherwise look
+   * identical to a working import.
+   */
+  private async applyWargearOptions(
+    manager: EntityManager,
+  ): Promise<void> {
+    const { faction, units } = WARGEAR_OPTIONS;
+
+    const datasheets = await manager.find(Datasheets, {
+      where: { faction: { id: faction } },
+      relations: { faction: true },
+    });
+
+    if (!datasheets.length) {
+      this.logger.warn(
+        `Wargear options: no datasheets for faction ${faction}, skipping`,
+      );
+      return;
+    }
+
+    const unmatched: string[] = [];
+    let matched = 0;
+
+    for (const sheet of datasheets) {
+      const unit = units[normaliseName(sheet.name)];
+
+      if (!unit) {
+        unmatched.push(sheet.name);
+        continue;
+      }
+
+      await manager.update(
+        Datasheets,
+        { id: sheet.id },
+        {
+          wargearOptions: unit,
+        },
+      );
+      matched++;
+    }
+
+    const pct = Math.round((matched / datasheets.length) * 100);
+    this.logger.log(
+      `Wargear options (${faction}): ${matched}/${datasheets.length} datasheets matched (${pct}%)`,
+    );
+
+    if (unmatched.length) {
+      this.logger.warn(
+        `Wargear options: no BSData entry for ${unmatched.length} datasheet(s): ${unmatched.join(', ')}`,
+      );
     }
   }
 

@@ -399,6 +399,11 @@ dist
 .webpack
 .serverless/**/*.zip
 data/
+
+# ...but src/data/ is source, not scratch: wargearOptions.json is generated
+# from BSData and committed on purpose, so the import reads the repo rather
+# than the network. A parent dir must be re-included before its files can be.
+!src/data/
 temp/
 
 # Local-only notes and agent instructions

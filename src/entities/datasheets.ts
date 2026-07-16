@@ -19,6 +19,7 @@ import { DatasheetsEnhancements } from './datasheetsEnhancements';
 import { DatasheetsUnitComposition } from './datasheetsUnitComposition';
 import { DatasheetsDetachmentAbilities } from './datasheetsDetachmentAbilities';
 import { DatasheetsLeader } from './datasheetsLeader';
+import { WargearUnit } from '../config/wargearOptions';
 
 @Entity()
 export class Datasheets {
@@ -57,6 +58,14 @@ export class Datasheets {
 
   @Column()
   link: string;
+
+  // Wargear option groups and their exclusivity, from BSData -- Wahapedia
+  // carries these as prose only. Applied by ImportService from the committed
+  // src/data/wargearOptions.json, so a full refresh repopulates rather than
+  // wipes it. jsonb because nothing queries into it: the builder renders the
+  // tree and enforces the picks.
+  @Column({ type: 'jsonb', nullable: true })
+  wargearOptions: WargearUnit | null;
 
   @OneToMany(
     () => DatasheetsKeywords,
