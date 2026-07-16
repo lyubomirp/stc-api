@@ -21,6 +21,8 @@ import { Enhancements } from '../entities/enhancements';
 import { Detachments } from '../entities/detachments';
 import { DetachmentAbilities } from '../entities/detachmentAbilities';
 import { LastUpdate } from '../entities/lastUpdate';
+import { Rosters } from '../entities/rosters';
+import { RosterUnits } from '../entities/rosterUnits';
 
 @Module({
   imports: [
@@ -60,6 +62,10 @@ import { LastUpdate } from '../entities/lastUpdate';
           DatasheetsOptions,
           DatasheetsWargear,
           LastUpdate,
+          // User-owned, not imported: these survive the refresh, which is why
+          // they hold no foreign key into anything above.
+          Rosters,
+          RosterUnits,
         ],
         migrations: ['./migrations/*.ts'],
         synchronize: true,
