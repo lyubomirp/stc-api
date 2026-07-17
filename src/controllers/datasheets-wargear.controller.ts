@@ -33,6 +33,8 @@ export class DatasheetsWargearController {
       {},
       {
         name: true,
+        type: true,
+        description: true,
         range: true,
         a: true,
         bsWs: true,

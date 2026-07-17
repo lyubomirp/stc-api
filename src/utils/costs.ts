@@ -43,6 +43,15 @@ export const costTiers = (rows: CostRow[]): CostTier[] =>
     // pts breaks the tie so the order is deterministic across runs.
     .sort((a, b) => a.models - b.models || a.pts - b.pts);
 
+// The inverse of costTiers' rule above: there "+N" marks an add-on line to
+// drop, here every enhancement IS an add-on and the + is only formatting (4 of
+// 927, all Assassins). Dropping those would under-cost their armies.
+export const enhancementCost = (cost: string): number | null => {
+  const match = /^\+?(\d+)$/.exec(cost.trim());
+
+  return match ? Number(match[1]) : null;
+};
+
 // Legacy rosters only, saved before costLine existed. Model count is ambiguous,
 // so this quotes the higher price -- an army over cap must not read as under.
 // RosterStep.priceByCount on the client mirrors this and must keep matching.

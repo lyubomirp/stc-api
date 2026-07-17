@@ -7,8 +7,10 @@ import * as csv from '@fast-csv/parse';
 import { LastUpdateService } from './lastUpdate.service';
 import { toError } from '../utils/general';
 import { ImportService } from './import.service';
+import { RostersService } from './rosters.service';
 
 const LAST_UPDATE_FILE = 'Last_update.csv';
+const PURGE_AFTER_DAYS = 30;
 
 @Injectable()
 export class CronService {
@@ -19,6 +21,7 @@ export class CronService {
     private readonly configService: ConfigService,
     private readonly lastUpdateService: LastUpdateService,
     private readonly importService: ImportService,
+    private readonly rostersService: RostersService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
@@ -56,6 +59,28 @@ export class CronService {
       const error = toError(err);
       this.logger.error(
         `Nightly refresh failed: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+
+  // 4am to stay clear of the 3am refresh's long transaction.
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async handleRosterPurge() {
+    try {
+      const purged =
+        await this.rostersService.purgeExpired(PURGE_AFTER_DAYS);
+
+      if (purged) {
+        this.logger.log(
+          `Purged ${purged} roster(s) deleted over ${PURGE_AFTER_DAYS} days ago`,
+        );
+      }
+    } catch (err) {
+      // An uncaught throw here takes the process down.
+      const error = toError(err);
+      this.logger.error(
+        `Roster purge failed: ${error.message}`,
         error.stack,
       );
     }

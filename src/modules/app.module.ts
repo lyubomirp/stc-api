@@ -17,6 +17,7 @@ import { DatasheetsWargearModule } from './datasheetsWargear.module';
 import { DatasheetsAbilitiesModule } from './datasheetsAbilities.module';
 import { DatasheetsOptionsModule } from './datasheetsOptions.module';
 import { DatasheetsLeaderModule } from './datasheetsLeader.module';
+import { DatasheetsEnhancementsModule } from './datasheetsEnhancements.module';
 import { RostersModule } from './rosters.module';
 
 @Module({
@@ -34,6 +35,7 @@ import { RostersModule } from './rosters.module';
     DatasheetsAbilitiesModule,
     DatasheetsOptionsModule,
     DatasheetsLeaderModule,
+    DatasheetsEnhancementsModule,
     DetachmentsModule,
     RostersModule,
     CronModule,

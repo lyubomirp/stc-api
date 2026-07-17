@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -14,6 +15,9 @@ export class RosterUnits {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Postgres does not index the referencing side of an FK, and this relation is
+  // eager -- every roster read filters on it.
+  @Index()
   @ManyToOne(() => Rosters, (roster) => roster.units, {
     onDelete: 'CASCADE',
     orphanedRowAction: 'delete',
@@ -41,6 +45,17 @@ export class RosterUnits {
   @Column({ type: 'int', nullable: true })
   pointsAtSave: number | null;
 
+  // Snapshotted and un-keyed like datasheetId -- see the note above.
+  @Column({ type: 'varchar', nullable: true })
+  enhancementId: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  enhancementName: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  enhancementPts: number | null;
+
+  // WargearPick[]. Free in 10e, so it never affects pointsAtSave.
   @Column({ type: 'jsonb', nullable: true })
   wargear: unknown | null;
 

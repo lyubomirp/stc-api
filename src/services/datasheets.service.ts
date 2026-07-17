@@ -11,7 +11,16 @@ export interface DatasheetListItem {
   name: string;
   role: string | null;
   costs: CostTier[];
+  // Omitted rather than false: emitting `false` on all 298 SM datasheets cost
+  // 18% of the list.
+  hasWargearChoices?: true;
+  isLeader?: true;
+  // In ANY detachment; the client filters by the selected one.
+  hasEnhancements?: true;
 }
+
+// Mirrors isExclusive() in the FE's LoadoutModal and must keep matching.
+const EXCLUSIVE_GROUP = '$.**?(@.kind == "group" && @.max == 1)';
 
 @Injectable()
 export class DatasheetsService extends BaseService(Datasheets) {
@@ -55,13 +64,69 @@ export class DatasheetsService extends BaseService(Datasheets) {
     }
 
     const rows = await query.getMany();
+    const [withChoices, leaders, enhanced] = await Promise.all([
+      this.findIdsWithWargearChoices(faction.id),
+      this.findIdsMatching(
+        faction.id,
+        'datasheets_leader',
+        '"leaderId"',
+      ),
+      this.findIdsMatching(
+        faction.id,
+        'datasheets_enhancements',
+        '"datasheetId"',
+      ),
+    ]);
 
     return rows.map((row) => ({
       id: row.id,
       name: row.name,
       role: row.role,
       costs: costTiers(row.datasheetModelsCost ?? []),
+      ...(withChoices.has(row.id)
+        ? { hasWargearChoices: true as const }
+        : {}),
+      ...(leaders.has(row.id) ? { isLeader: true as const } : {}),
+      ...(enhanced.has(row.id)
+        ? { hasEnhancements: true as const }
+        : {}),
     }));
+  }
+
+  // `table` and `column` are call-site literals, never user input.
+  private async findIdsMatching(
+    factionId: string,
+    table: string,
+    column: string,
+  ): Promise<Set<string>> {
+    const rows = await this.repository
+      .createQueryBuilder('datasheet')
+      .select('datasheet.id', 'id')
+      .where('datasheet.factionId = :factionId', { factionId })
+      .andWhere(
+        `EXISTS (SELECT 1 FROM ${table} t WHERE t.${column} = datasheet.id)`,
+      )
+      .getRawMany<{ id: string }>();
+
+    return new Set(rows.map((r) => r.id));
+  }
+
+  // Not an addSelect: the list joins cost rows, so getRawAndEntities would need
+  // de-multiplying for one boolean.
+  private async findIdsWithWargearChoices(
+    factionId: string,
+  ): Promise<Set<string>> {
+    const rows = await this.repository
+      .createQueryBuilder('datasheet')
+      .select('datasheet.id', 'id')
+      .where('datasheet.factionId = :factionId', { factionId })
+      .andWhere(
+        `jsonb_path_exists(datasheet."wargearOptions", :path::jsonpath)`,
+        { path: EXCLUSIVE_GROUP },
+      )
+      .getRawMany<{ id: string }>();
+
+    return new Set(rows.map((r) => r.id));
   }
 
   async findOne(
