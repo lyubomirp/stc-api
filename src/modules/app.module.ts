@@ -18,6 +18,7 @@ import { DatasheetsAbilitiesModule } from './datasheetsAbilities.module';
 import { DatasheetsOptionsModule } from './datasheetsOptions.module';
 import { DatasheetsLeaderModule } from './datasheetsLeader.module';
 import { DatasheetsEnhancementsModule } from './datasheetsEnhancements.module';
+import { AlliesModule } from './allies.module';
 import { RostersModule } from './rosters.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { RostersModule } from './rosters.module';
     DatasheetsOptionsModule,
     DatasheetsLeaderModule,
     DatasheetsEnhancementsModule,
+    AlliesModule,
     DetachmentsModule,
     RostersModule,
     CronModule,

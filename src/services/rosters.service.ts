@@ -11,7 +11,13 @@ import { Datasheets } from '../entities/datasheets';
 import { DatasheetsModelsCost } from '../entities/datasheetsModelsCost';
 import { DatasheetsLeader } from '../entities/datasheetsLeader';
 import { DatasheetsEnhancements } from '../entities/datasheetsEnhancements';
-import { costTiers, enhancementCost, priceAt } from '../utils/costs';
+import { LeaderGrantsService } from './leaderGrants.service';
+import {
+  allyCostTiers,
+  costTiers,
+  enhancementCost,
+  priceAt,
+} from '../utils/costs';
 
 interface EnhancementSnapshot {
   id: string;
@@ -103,11 +109,37 @@ export class RostersService {
     private readonly leaders: Repository<DatasheetsLeader>,
     @InjectRepository(DatasheetsEnhancements)
     private readonly datasheetEnhancements: Repository<DatasheetsEnhancements>,
+    private readonly grants: LeaderGrantsService,
   ) {}
 
+  // Datasheet ids each unit's enhancement lets it lead beyond datasheets_leader,
+  // keyed by the unit's index.
+  private async resolveGrants(
+    input: CreateRosterInput,
+    enhancements: Map<number, EnhancementSnapshot>,
+  ): Promise<Map<number, Set<string>>> {
+    const out = new Map<number, Set<string>>();
+
+    await Promise.all(
+      [...enhancements].map(async ([i, snap]) => {
+        if (!input.factionId || !this.grants.hasGrant(snap.name))
+          return;
+        const ids = await this.grants.resolve(
+          snap.name,
+          input.factionId,
+        );
+        if (ids.length) out.set(i, new Set(ids));
+      }),
+    );
+
+    return out;
+  }
+
   // `datasheets_leader` says who MAY lead whom; attachedToId records who did.
+  // An enhancement can widen that -- see resolveGrants.
   private async checkAttachments(
     units: RosterUnitInput[],
+    granted: Map<number, Set<string>>,
   ): Promise<void> {
     const pairs = units
       .map((u, i) => ({ u, i }))
@@ -150,7 +182,10 @@ export class RostersService {
       const target = units[u.attachedToIndex!];
       const key = `${u.datasheetId}->${target.datasheetId}`;
 
-      if (!allowed.has(key)) {
+      if (
+        !allowed.has(key) &&
+        !granted.get(i)?.has(target.datasheetId)
+      ) {
         throw new BadRequestException(
           `unit ${i}: ${u.datasheetId} may not lead ${target.datasheetId}`,
         );
@@ -272,16 +307,19 @@ export class RostersService {
       );
     }
 
-    await this.checkAttachments(units);
-
     const enhancements = await this.resolveEnhancements(input);
+    const granted = await this.resolveGrants(input, enhancements);
+    await this.checkAttachments(units, granted);
 
     // Validated by lookup: the ids cannot carry a foreign key constraint.
+    // Faction comes along so a unit from another faction (an ally) is priced
+    // with its ally cost, not its own.
     const ids = [...new Set(units.map((u) => u.datasheetId))];
     const found = ids.length
       ? await this.datasheets.find({
           where: { id: In(ids) },
-          select: { id: true, name: true },
+          relations: { faction: true },
+          select: { id: true, name: true, faction: { id: true } },
         })
       : [];
 
@@ -302,9 +340,15 @@ export class RostersService {
       : [];
 
     const rows = units.map((u, i) => {
-      const tiers = costTiers(
-        costRows.filter((c) => c.datasheet?.id === u.datasheetId),
+      const unitRows = costRows.filter(
+        (c) => c.datasheet?.id === u.datasheetId,
       );
+      // An ally (from another faction) is priced with its ally cost.
+      const isAlly =
+        byId.get(u.datasheetId)?.faction?.id !== input.factionId;
+      const tiers = isAlly
+        ? allyCostTiers(unitRows)
+        : costTiers(unitRows);
 
       const chosen = u.costLine
         ? tiers.find((t) => t.line === u.costLine)

@@ -12,12 +12,11 @@ interface CostRow {
   cost: string;
 }
 
-// The single home for cost parsing: the datasheets list and the saved roster
-// price both read it, and a second copy would drift.
-export const costTiers = (rows: CostRow[]): CostTier[] =>
+const ASSIGNED_AGENT = /\(assigned agent\)/i;
+
+// Parse whichever rows it is given into tiers. Both cost views share it.
+const parseTiers = (rows: CostRow[]): CostTier[] =>
   rows
-    // "(Assigned Agent)" rows are the ally price, not this unit's.
-    .filter((r) => !/\(assigned agent\)/i.test(r.description ?? ''))
     // Drops "+N" add-on lines. Explicit because Number('+55') is finite, so
     // only the models > 0 test below catches them -- and that stops working
     // the moment upstream writes "2 Attack Bikes".
@@ -42,6 +41,22 @@ export const costTiers = (rows: CostRow[]): CostTier[] =>
     )
     // pts breaks the tie so the order is deterministic across runs.
     .sort((a, b) => a.models - b.models || a.pts - b.pts);
+
+// The single home for cost parsing: the datasheets list and the saved roster
+// price both read it, and a second copy would drift.
+export const costTiers = (rows: CostRow[]): CostTier[] =>
+  // "(Assigned Agent)" rows are the ally price, not this unit's own.
+  parseTiers(
+    rows.filter((r) => !ASSIGNED_AGENT.test(r.description ?? '')),
+  );
+
+// Ally price: the "(Assigned Agent)" rows win where they exist, else flat.
+export const allyCostTiers = (rows: CostRow[]): CostTier[] => {
+  const assigned = rows.filter((r) =>
+    ASSIGNED_AGENT.test(r.description ?? ''),
+  );
+  return assigned.length ? parseTiers(assigned) : costTiers(rows);
+};
 
 // The inverse of costTiers' rule above: there "+N" marks an add-on line to
 // drop, here every enhancement IS an add-on and the + is only formatting (4 of

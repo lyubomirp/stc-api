@@ -8,6 +8,7 @@ import { DatasheetsLeader } from '../entities/datasheetsLeader';
 import { DatasheetsEnhancements } from '../entities/datasheetsEnhancements';
 import { RostersService } from '../services/rosters.service';
 import { RostersController } from '../controllers/rosters.controller';
+import { DatasheetsEnhancementsModule } from './datasheetsEnhancements.module';
 
 @Module({
   imports: [
@@ -19,6 +20,8 @@ import { RostersController } from '../controllers/rosters.controller';
       DatasheetsLeader,
       DatasheetsEnhancements,
     ]),
+    // For LeaderGrantsService.
+    DatasheetsEnhancementsModule,
   ],
   exports: [RostersService],
   providers: [RostersService],
