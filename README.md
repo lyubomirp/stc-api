@@ -2,9 +2,11 @@
 
 A Warhammer 40,000 army list data API. It mirrors the
 [Wahapedia](https://wahapedia.ru) data exports into Postgres on a nightly
-schedule and serves them over a read-only HTTP API, so a front end can query
-factions, datasheets, weapon profiles, stratagems and abilities without
-parsing CSVs itself.
+schedule and serves them over HTTP, so a front end can query factions,
+datasheets, weapon profiles, stratagems and abilities without parsing CSVs
+itself. On top of that read-only projection it adds a small write surface for
+saving army rosters, and derives a few things the CSVs only state in prose —
+wargear options, leader attachment, enhancements and allied forces.
 
 Unofficial and non-commercial. Not affiliated with or endorsed by Games
 Workshop. Warhammer 40,000 and all associated names are trademarks of Games
@@ -18,23 +20,26 @@ validated, and written to Postgres in a single transaction — the whole dataset
 is replaced rather than merged, so the database always matches upstream. Temp
 files are deleted afterwards.
 
-Data enters the database from the cron or the manual import command only.
-Every HTTP route is read-only.
+Imported data enters the database from the cron or the manual import command
+only, and every route that reads it is a read-only projection. Saved rosters
+are the exception — the one write surface — and they never hold a foreign key
+into imported data (which the nightly refresh deletes and reinserts), only
+plain ids with name snapshots beside them.
 
 `src/config/importManifest.ts` is the single source of truth for the import:
 file order, CSV-header to entity-property mapping, and the download list.
 
 ## Tech stack
 
-| | |
-|---|---|
-| Runtime | Node.js 24 LTS, TypeScript 6 (strict) |
-| Framework | NestJS 11 (Express 5) |
-| Database | PostgreSQL 16 (via TypeORM 1) |
-| Scheduling | `@nestjs/schedule` |
-| HTTP / parsing | `@nestjs/axios`, `fast-csv` |
-| Lint / test | ESLint 10 (flat config), Prettier 3, Jest 30 |
-| Local infra | Docker Compose |
+|                |                                              |
+| -------------- | -------------------------------------------- |
+| Runtime        | Node.js 24 LTS, TypeScript 6 (strict)        |
+| Framework      | NestJS 11 (Express 5)                        |
+| Database       | PostgreSQL 16 (via TypeORM 1)                |
+| Scheduling     | `@nestjs/schedule`                           |
+| HTTP / parsing | `@nestjs/axios`, `fast-csv`                  |
+| Lint / test    | ESLint 10 (flat config), Prettier 3, Jest 30 |
+| Local infra    | Docker Compose                               |
 
 ## Getting started
 
@@ -61,17 +66,17 @@ npm run build
 `.env` is read by both the app and `docker-compose.yaml`, so the two cannot
 drift apart.
 
-| Variable | Description |
-|---|---|
-| `ENVIRONMENT` | `dev` / `prod` |
-| `PORT` | Currently unused — the app listens on 3000 |
-| `DB_TYPE` | `postgres` |
-| `DB_HOST` | Database host |
-| `DB_PORT` | Optional, defaults to `5432` |
-| `DB_USERNAME` | Database user |
-| `DB_PASSWORD` | Database password |
-| `DB_NAME` | Database name |
-| `API_URL` | Base URL the export files are fetched from |
+| Variable      | Description                                |
+| ------------- | ------------------------------------------ |
+| `ENVIRONMENT` | `dev` / `prod`                             |
+| `PORT`        | Currently unused — the app listens on 3000 |
+| `DB_TYPE`     | `postgres`                                 |
+| `DB_HOST`     | Database host                              |
+| `DB_PORT`     | Optional, defaults to `5432`               |
+| `DB_USERNAME` | Database user                              |
+| `DB_PASSWORD` | Database password                          |
+| `DB_NAME`     | Database name                              |
+| `API_URL`     | Base URL the export files are fetched from |
 
 ## Importing data
 
@@ -89,24 +94,45 @@ absent from the export, and those rows are skipped.
 
 ## API
 
-All endpoints are `GET`. `:datasheetId` and `:factionId` are upstream ids
-(e.g. `SM`, `000000159`).
+`:datasheetId` and `:factionId` are upstream ids (e.g. `SM`, `000000159`).
 
-| Endpoint | Returns |
-|---|---|
-| `/factions` | All factions |
-| `/datasheets/:factionId` | Datasheets belonging to a faction |
-| `/datasheets/single/:datasheetId` | A single datasheet |
-| `/datasheets-models/:datasheetId` | Model profiles (M, T, Sv, W, Ld, OC) |
-| `/datasheets-wargear/:datasheetId` | Weapon profiles (range, A, BS/WS, S, AP, D) |
-| `/datasheets-abilities/:datasheetId` | Abilities, grouped by type |
-| `/datasheets-options/:datasheetId` | Wargear options |
-| `/datasheets-unit-composition/:datasheetId` | `{ costs, comp }` — points and unit composition |
-| `/datasheets-stratagems/:datasheetId` | `{ detachments, stratagems }` |
-| `/datasheets-leader/:datasheetId` | Leader / attachment pairings |
+### Reading imported data (all `GET`)
 
-An unknown faction or datasheet id returns a 404. `/` and `/abilities` are
-unimplemented stubs.
+| Endpoint                                    | Returns                                                  |
+| ------------------------------------------- | -------------------------------------------------------- |
+| `/factions`                                 | All factions                                             |
+| `/factions/:factionId/overview`             | Faction, abilities, sub-factions, detachments, keywords  |
+| `/factions/:factionId/keywords/:keyword`    | Datasheets carrying a keyword                            |
+| `/detachments/:detachmentId`                | Lore, rules, stratagems, enhancements                    |
+| `/datasheets/:factionId`                    | List projection (id, name, role); `?subfaction=` filters |
+| `/datasheets/single/:datasheetId`           | A single datasheet, full prose                           |
+| `/datasheets-models/:datasheetId`           | Model profiles (M, T, Sv, W, Ld, OC)                     |
+| `/datasheets-wargear/:datasheetId`          | Weapon profiles (range, A, BS/WS, S, AP, D)              |
+| `/datasheets-abilities/:datasheetId`        | Abilities, grouped by type                               |
+| `/datasheets-options/:datasheetId`          | Wargear options                                          |
+| `/datasheets-unit-composition/:datasheetId` | `{ costs, comp }` — points and unit composition          |
+| `/datasheets-stratagems/:datasheetId`       | `{ detachments, stratagems }`                            |
+| `/datasheets-enhancements/:datasheetId`     | Enhancements this datasheet may take, priced             |
+| `/datasheets-leader/:datasheetId`           | Who may lead this unit                                   |
+| `/datasheets-leader/:datasheetId/leads`     | What this leader may join                                |
+| `/allies/:factionId`                        | Allied families this faction may draw from, priced       |
+
+### Rosters (the write surface)
+
+| Method   | Endpoint                 |                                         |
+| -------- | ------------------------ | --------------------------------------- |
+| `GET`    | `/rosters`               | Saved rosters; `?factionId=` filters    |
+| `GET`    | `/rosters/deleted`       | Soft-deleted rosters                    |
+| `GET`    | `/rosters/:id`           | One roster                              |
+| `POST`   | `/rosters`               | Create                                  |
+| `PUT`    | `/rosters/:id`           | Replace                                 |
+| `DELETE` | `/rosters/:id`           | Soft-delete                             |
+| `POST`   | `/rosters/:id/restore`   | Undo a soft-delete                      |
+| `DELETE` | `/rosters/:id/permanent` | Hard-delete (soft-deleted rosters only) |
+
+Soft-deleted rosters are purged after 30 days by a daily cron. An unknown
+faction or datasheet id returns a 404. `/` and `/abilities` are unimplemented
+stubs.
 
 ## Tests
 
