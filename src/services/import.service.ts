@@ -162,50 +162,52 @@ export class ImportService {
   private async applyWargearOptions(
     manager: EntityManager,
   ): Promise<void> {
-    const { faction, units } = WARGEAR_OPTIONS;
+    for (const [faction, { units }] of Object.entries(
+      WARGEAR_OPTIONS.factions,
+    )) {
+      const datasheets = await manager.find(Datasheets, {
+        where: { faction: { id: faction } },
+        relations: { faction: true },
+      });
 
-    const datasheets = await manager.find(Datasheets, {
-      where: { faction: { id: faction } },
-      relations: { faction: true },
-    });
-
-    if (!datasheets.length) {
-      this.logger.warn(
-        `Wargear options: no datasheets for faction ${faction}, skipping`,
-      );
-      return;
-    }
-
-    const unmatched: string[] = [];
-    let matched = 0;
-
-    for (const sheet of datasheets) {
-      const unit = units[normaliseName(sheet.name)];
-
-      if (!unit) {
-        unmatched.push(sheet.name);
+      if (!datasheets.length) {
+        this.logger.warn(
+          `Wargear options: no datasheets for faction ${faction}, skipping`,
+        );
         continue;
       }
 
-      await manager.update(
-        Datasheets,
-        { id: sheet.id },
-        {
-          wargearOptions: unit,
-        },
-      );
-      matched++;
-    }
+      const unmatched: string[] = [];
+      let matched = 0;
 
-    const pct = Math.round((matched / datasheets.length) * 100);
-    this.logger.log(
-      `Wargear options (${faction}): ${matched}/${datasheets.length} datasheets matched (${pct}%)`,
-    );
+      for (const sheet of datasheets) {
+        const unit = units[normaliseName(sheet.name)];
 
-    if (unmatched.length) {
-      this.logger.warn(
-        `Wargear options: no BSData entry for ${unmatched.length} datasheet(s): ${unmatched.join(', ')}`,
+        if (!unit) {
+          unmatched.push(sheet.name);
+          continue;
+        }
+
+        await manager.update(
+          Datasheets,
+          { id: sheet.id },
+          {
+            wargearOptions: unit,
+          },
+        );
+        matched++;
+      }
+
+      const pct = Math.round((matched / datasheets.length) * 100);
+      this.logger.log(
+        `Wargear options (${faction}): ${matched}/${datasheets.length} datasheets matched (${pct}%)`,
       );
+
+      if (unmatched.length) {
+        this.logger.warn(
+          `Wargear options (${faction}): no BSData entry for ${unmatched.length} datasheet(s): ${unmatched.join(', ')}`,
+        );
+      }
     }
   }
 

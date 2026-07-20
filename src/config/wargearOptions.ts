@@ -20,11 +20,15 @@ export interface WargearUnit {
   children: WargearNode[];
 }
 
-interface WargearFile {
-  source: string;
-  faction: string;
+export interface WargearFaction {
   catalogues: string[];
   units: Record<string, WargearUnit>;
+}
+
+interface WargearFile {
+  source: string;
+  // Keyed by DB faction id; each faction matches only its own datasheets.
+  factions: Record<string, WargearFaction>;
 }
 
 // Generated offline by scripts/gen-wargear-options.mjs; never fetched at import
