@@ -22,6 +22,14 @@ export interface DatasheetListItem {
 // Mirrors isExclusive() in the FE's LoadoutModal and must keep matching.
 const EXCLUSIVE_GROUP = '$.**?(@.kind == "group" && @.max == 1)';
 
+export interface DatasheetSearchHit {
+  id: string;
+  name: string;
+  role: string | null;
+  factionId: string;
+  factionName: string;
+}
+
 @Injectable()
 export class DatasheetsService extends BaseService(Datasheets) {
   // List projection; the heavy prose stays on /datasheets/single/:id.
@@ -127,6 +135,41 @@ export class DatasheetsService extends BaseService(Datasheets) {
       .getRawMany<{ id: string }>();
 
     return new Set(rows.map((r) => r.id));
+  }
+
+  // Name search across every faction, paginated. Excludes the lone `virtual`
+  // template row (junk, not a real unit). LIKE metacharacters in the query are
+  // escaped so a typed `%` matches literally.
+  async search(
+    q: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{ items: DatasheetSearchHit[]; total: number }> {
+    const like = `%${q.replace(/[\\%_]/g, '\\$&')}%`;
+
+    const base = this.repository
+      .createQueryBuilder('d')
+      .innerJoin('d.faction', 'f')
+      .where('d.virtual <> :virtual', { virtual: 'true' })
+      .andWhere("d.name ILIKE :like ESCAPE '\\'", { like });
+
+    const total = await base.clone().getCount();
+
+    const items = await base
+      .clone()
+      .select([
+        'd.id AS id',
+        'd.name AS name',
+        'd.role AS role',
+        'f.id AS "factionId"',
+        'f.name AS "factionName"',
+      ])
+      .orderBy('d.name', 'ASC')
+      .offset((page - 1) * pageSize)
+      .limit(pageSize)
+      .getRawMany<DatasheetSearchHit>();
+
+    return { items, total };
   }
 
   async findOne(
