@@ -33,7 +33,7 @@ export class DatasheetsStratagemsController {
     const result =
       await this.datasheetsStratagemsService.findByDatasheet(
         datasheet,
-        { stratagem: true },
+        { stratagem: { detachmentRef: true } },
         {
           stratagem: {
             id: true,
@@ -42,22 +42,24 @@ export class DatasheetsStratagemsController {
             type: true,
             turn: true,
             phase: true,
-            detachment: true,
+            detachmentRef: { id: true, name: true },
           },
         },
       );
 
     return result.reduce<{
-      detachments: string[];
+      detachments: { id: string; name: string }[];
       stratagems: Stratagems[];
     }>(
       (acc, val) => {
-        const detachment = val.stratagem.detachment;
+        // Carry the detachment FK id so the client filters by id, never by
+        // matching the denormalised name string.
+        const ref = val.stratagem.detachmentRef;
 
         acc.stratagems.push(val.stratagem);
 
-        if (detachment && !acc.detachments.includes(detachment)) {
-          acc.detachments.push(detachment);
+        if (ref && !acc.detachments.some((d) => d.id === ref.id)) {
+          acc.detachments.push({ id: ref.id, name: ref.name });
         }
 
         return acc;
