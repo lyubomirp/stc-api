@@ -25,6 +25,12 @@ export class RosterUnits {
   @JoinColumn()
   roster: Rosters;
 
+  // Insertion order. The eager relation has no inherent order and `update`
+  // reinserts the whole set, so without this a saved roster reorders on reload.
+  // Defaulted so `synchronize` can add it to existing rows.
+  @Column({ type: 'int', default: 0 })
+  position: number;
+
   @Column()
   datasheetId: string;
 

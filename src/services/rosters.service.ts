@@ -57,7 +57,10 @@ export interface CreateRosterInput {
   warlordDatasheetId?: string | null;
 }
 
-const BATTLE_SIZES = [1000, 2000, 3000];
+// Named modes are Combat Patrol 500 / Incursion 1000 / Strike Force 2000 /
+// Onslaught 3000; a custom game may set any positive points cap.
+const MIN_BATTLE_SIZE = 1;
+const MAX_BATTLE_SIZE = 100000;
 
 // RosterStep sums these two the same way; if they drift the meter lies.
 const totalPoints = (units: RosterUnits[]): number =>
@@ -287,9 +290,13 @@ export class RostersService {
       throw new BadRequestException('name is required');
     }
 
-    if (!BATTLE_SIZES.includes(input.battleSize)) {
+    if (
+      !Number.isInteger(input.battleSize) ||
+      input.battleSize < MIN_BATTLE_SIZE ||
+      input.battleSize > MAX_BATTLE_SIZE
+    ) {
       throw new BadRequestException(
-        `battleSize must be one of ${BATTLE_SIZES.join(', ')}`,
+        `battleSize must be an integer between ${MIN_BATTLE_SIZE} and ${MAX_BATTLE_SIZE}`,
       );
     }
 
@@ -361,6 +368,7 @@ export class RostersService {
       }
 
       const unit = new RosterUnits();
+      unit.position = i;
       unit.datasheetId = u.datasheetId;
       unit.datasheetName = byId.get(u.datasheetId)!.name;
 
@@ -505,7 +513,7 @@ export class RostersService {
     return this.rosters.find({
       where: { deletedAt: Not(IsNull()) },
       withDeleted: true,
-      order: { deletedAt: 'DESC' },
+      order: { deletedAt: 'DESC', units: { position: 'ASC' } },
     });
   }
 
@@ -552,11 +560,14 @@ export class RostersService {
   async findAll(factionId?: string): Promise<Rosters[]> {
     return this.rosters.find({
       where: factionId ? { factionId } : {},
-      order: { updatedAt: 'DESC' },
+      order: { updatedAt: 'DESC', units: { position: 'ASC' } },
     });
   }
 
   async findOne(id: string): Promise<Rosters | null> {
-    return this.rosters.findOne({ where: { id } });
+    return this.rosters.findOne({
+      where: { id },
+      order: { units: { position: 'ASC' } },
+    });
   }
 }
