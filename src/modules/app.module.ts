@@ -3,7 +3,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../config/Configuration';
 import { AppController } from '../controllers/app.controller';
-import { AppService } from '../services/app.service';
 import { DatabaseModule } from './database.module';
 import { CronModule } from './cron.module';
 import { DetachmentsModule } from './detachments.module';
@@ -43,6 +42,5 @@ import { RostersModule } from './rosters.module';
     CronModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
